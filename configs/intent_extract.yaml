@@ -1,0 +1,23 @@
+type: llm
+llm_cfgs:
+  model_cfgs:
+    inference_backend: api
+    model_sdk_type: openai
+    model_name_or_path: deepseek-chat
+    api_key_name: DEEPSEEK_API_KEY
+  inference_cfgs:
+    max_tokens: 8192
+    max_retry: 3
+    max_workers: 32
+    sleep_seconds: 30
+    timeout: 300
+  cache_cfgs:
+    cache_type: redis
+    json_dir: null
+    redis_cfgs:
+      host: localhost
+      port: 6379
+      db: 0
+      password: password
+    force_update: false
+prompt_builder_cfgs: SimpleIntentExtract
