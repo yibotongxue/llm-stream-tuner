@@ -1,3 +1,4 @@
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -57,9 +58,14 @@ class CachedInference(InferenceInterface):
         for i, input in enumerate(inputs):
             input_key = self._generate_key(input)
             cache = self.cache_manager.load_cache(input_key)
-            if cache is not None:
+            if (
+                cache is not None
+                and isinstance(cache, dict)
+                and "data" in cache
+                and isinstance(cache["data"], dict)
+            ):
                 cached_input_indices.append(i)
-                cached_result.append(InferenceOutput(**cache))
+                cached_result.append(InferenceOutput(**cache["data"]))
         self.logger.info(
             f"一共有{len(inputs)}条请求，从缓存读取了{len(cached_input_indices)}条"
         )
@@ -71,7 +77,13 @@ class CachedInference(InferenceInterface):
         )
         for input, output in zip(non_cached_inputs, non_cached_outputs):
             key = self._generate_key(input)
-            self.cache_manager.save_cache(key, output.model_dump())
+            to_save_output = {
+                "data": output.model_dump(),
+                "meta_data": {
+                    "time": time.time(),
+                },
+            }
+            self.cache_manager.save_cache(key, to_save_output)
         cached_idx = 0
         non_cached_idx = 0
         result: list[InferenceOutput] = []
