@@ -81,6 +81,12 @@ class InferenceFactory:
 
         backend = model_cfgs.get("inference_backend")
 
+        # Shutdown previous instances if necessary
+        if backend in ["hf", "vllm"]:
+            for k, v in cls._inference_pool.items():
+                if not k == cfgs_hash:
+                    v.shutdown()
+
         if cfgs_hash in cls._inference_pool:
             return cls._inference_pool[cfgs_hash]
 
@@ -92,6 +98,20 @@ class InferenceFactory:
             from .api_llm import get_api_llm_inference
 
             instance = get_api_llm_inference(
+                model_cfgs=model_cfgs,
+                inference_cfgs=inference_cfgs,
+            )
+        elif backend == "hf":
+            from .hf import HuggingFaceInference
+
+            instance = HuggingFaceInference(
+                model_cfgs=model_cfgs,
+                inference_cfgs=inference_cfgs,
+            )
+        elif backend == "vllm":
+            from .vllm import VllmInference
+
+            instance = VllmInference(
                 model_cfgs=model_cfgs,
                 inference_cfgs=inference_cfgs,
             )

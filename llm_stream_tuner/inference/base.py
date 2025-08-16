@@ -192,6 +192,9 @@ class BaseInference(InferenceInterface):
             self._get_inference_essential_cfgs()
         )
 
+    def shutdown(self) -> None:
+        pass
+
     def _update_inference_cfgs(
         self, new_inference_cfgs: dict[str, Any]
     ) -> Callable[[], None]:
