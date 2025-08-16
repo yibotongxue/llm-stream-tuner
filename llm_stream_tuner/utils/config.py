@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from typing import Any
 
@@ -9,9 +10,149 @@ __all__ = [
 ]
 
 
+def load_yaml_with_imports(
+    config_path: str, loaded_files: set[str] | None = None
+) -> dict[str, Any]:
+    """
+    Load a YAML file and process _import_from and _import directives.
+
+    Args:
+        config_path (str): Path to the configuration file.
+        loaded_files (set): Set of already loaded files to prevent circular imports.
+
+    Returns:
+        dict[str, Any]: Loaded configuration with imports processed.
+    """
+    if loaded_files is None:
+        loaded_files = set()
+
+    # Prevent circular imports
+    abs_config_path = os.path.abspath(config_path)
+    if abs_config_path in loaded_files:
+        raise ValueError(f"Circular import detected: {config_path}")
+    loaded_files.add(abs_config_path)
+
+    with open(config_path) as file:
+        config: dict[str, Any] = yaml.safe_load(file)
+
+    # Get the directory of the current config file
+    config_dir = os.path.dirname(os.path.abspath(config_path))
+
+    # Process imports recursively
+    config = _process_imports(config, config_dir, loaded_files)
+
+    # Remove import directives
+    _remove_import_directives(config)
+
+    loaded_files.remove(abs_config_path)
+    return config
+
+
+def _process_imports(
+    config: dict[str, Any], base_dir: str, loaded_files: set[str]
+) -> dict[str, Any]:
+    """
+    Process _import_from and _import directives in the configuration.
+
+    Args:
+        config (dict): Configuration dictionary to process.
+        base_dir (str): Base directory for resolving relative paths.
+        loaded_files (set): Set of already loaded files to prevent circular imports.
+
+    Returns:
+        dict: Configuration with imports processed.
+    """
+    if not isinstance(config, dict):
+        return config
+
+    # Check if this dict has import directives
+    if "_import_from" in config and "_import" in config:
+        import_from = config["_import_from"]
+        import_names = config["_import"]
+
+        # Resolve the import file path
+        import_file_path = os.path.join(base_dir, import_from)
+        # Make sure the path is absolute
+        import_file_path = os.path.abspath(import_file_path)
+
+        # Load the import file
+        imported_config = load_yaml_with_imports(import_file_path, loaded_files)
+
+        # Merge the imported configurations
+        result: dict[str, Any] = {}
+        if isinstance(import_names, list):
+            for import_name in import_names:
+                if import_name in imported_config:
+                    _merge_dicts(result, imported_config[import_name])
+        elif isinstance(import_names, str) and import_names in imported_config:
+            _merge_dicts(result, imported_config[import_names])
+
+        # Merge with any additional keys in the current config
+        for key, value in config.items():
+            if key not in ["_import_from", "_import"]:
+                if (
+                    key in result
+                    and isinstance(result[key], dict)
+                    and isinstance(value, dict)
+                ):
+                    _merge_dicts(result[key], value)
+                else:
+                    result[key] = value
+
+        return result
+
+    # Process nested dictionaries
+    for key, value in config.items():
+        if isinstance(value, dict):
+            config[key] = _process_imports(value, base_dir, loaded_files)
+        elif isinstance(value, list):
+            for i, item in enumerate(value):
+                if isinstance(item, dict):
+                    value[i] = _process_imports(item, base_dir, loaded_files)
+
+    return config
+
+
+def _remove_import_directives(config: dict[str, Any]) -> None:
+    """
+    Remove _import_from and _import directives from the configuration.
+
+    Args:
+        config (dict): Configuration dictionary to clean.
+    """
+    if not isinstance(config, dict):
+        return
+
+    config.pop("_import_from", None)
+    config.pop("_import", None)
+
+    for value in config.values():
+        if isinstance(value, dict):
+            _remove_import_directives(value)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    _remove_import_directives(item)
+
+
+def _merge_dicts(target: dict[str, Any], source: dict[str, Any]) -> None:
+    """
+    Merge source dictionary into target dictionary recursively.
+
+    Args:
+        target (dict): Target dictionary to merge into.
+        source (dict): Source dictionary to merge from.
+    """
+    for key, value in source.items():
+        if key in target and isinstance(target[key], dict) and isinstance(value, dict):
+            _merge_dicts(target[key], value)
+        else:
+            target[key] = value
+
+
 def load_config(config_path: str) -> dict[str, Any]:
     """
-    Load the configuration file.
+    Load the configuration file with import support.
 
     Args:
         config_path (str): Path to the configuration file.
@@ -19,9 +160,7 @@ def load_config(config_path: str) -> dict[str, Any]:
     Returns:
         dict[str, Any]: Loaded configuration.
     """
-    with open(config_path) as file:
-        config: dict[str, Any] = yaml.safe_load(file)
-    return config
+    return load_yaml_with_imports(config_path)
 
 
 def update_dict(
