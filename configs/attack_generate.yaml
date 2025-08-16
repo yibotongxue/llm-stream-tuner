@@ -1,0 +1,5 @@
+type: llm
+llm_cfgs:
+  _import_from: common_llm.yaml
+  _import: [deepseek-chat]
+prompt_builder_cfgs: SimpleAttackGenerate
