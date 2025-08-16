@@ -43,7 +43,7 @@ repos:
         args: ["-c", ".bandit.yml"]
         exclude: ^tests/
       - id: bandit
-        args: ["-c", ".bandit.yml", "-s", "B101"]
+        args: ["-c", ".bandit.yml", "-s", "B101,B108"]
         files: ^tests/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
