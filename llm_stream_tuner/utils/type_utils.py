@@ -83,6 +83,13 @@ class InferenceOutput(CustomBaseModel):
         return InferenceOutput(**raw)
 
 
+class AlpacaInputData(CustomBaseModel):
+    instruction: str
+    input: str
+    output: str
+    meta_data: dict[str, Any] = {}
+
+
 def to_dict(obj: BaseModel | dict[str, Any]) -> dict[str, Any]:
 
     def _to_dict(

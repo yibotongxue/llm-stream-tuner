@@ -1,0 +1,5 @@
+data_path: UCSC-VLAA/STAR-1
+data_template: STAR-1
+data_size: null
+load_cfgs:
+  split: train
