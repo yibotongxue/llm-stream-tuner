@@ -30,7 +30,13 @@ def extract_last_tag_content(s: str, tag_name: str) -> str | None:
     # 构建正则表达式（考虑标签属性、换行符等）
     pattern = rf"<{tag_name}[^>]*>(.*?)</{tag_name}>"
     matches = re.findall(pattern, s, re.DOTALL)
-    return matches[-1] if matches else None
+    if matches is None:
+        return None
+    content = matches[-1]
+    if not isinstance(content, str):
+        return None
+    content = content.split(f"<{tag_name}>")[-1].split(f"</{tag_name}>")[0]
+    return content
 
 
 def extract_json_dict(s: str) -> dict[str, Any] | list[dict[str, Any]] | None:

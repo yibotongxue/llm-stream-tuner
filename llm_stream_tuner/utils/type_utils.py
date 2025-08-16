@@ -34,6 +34,23 @@ class InferenceInput(CustomBaseModel):
             meta_data={},
         )
 
+    def get_last_user_message(self) -> str:
+        if len(self.conversation) == 0:
+            raise ValueError("The conversation is empty")
+        last_turn = self.conversation[-1]
+        if last_turn["role"] != "user":
+            raise ValueError("The last turn is not user")
+        return last_turn["content"]  # type: ignore [no-any-return]
+
+    def with_update_prompt(self, new_prompt: str) -> InferenceInput:
+        new_conversation = deepcopy(self.conversation)
+        new_conversation[-1] = {"role": "user", "content": new_prompt}
+        raw = {
+            **self.model_dump(),
+            "conversation": new_conversation,
+        }
+        return InferenceInput(**raw)
+
     def get_raw_question(self) -> str:
         if "raw_question" in self.meta_data:
             return self.meta_data["raw_question"]  # type: ignore [no-any-return]
@@ -53,15 +70,15 @@ class InferenceInput(CustomBaseModel):
 
 class InferenceOutput(CustomBaseModel):
     response: str
-    extracted_answer: Any | None = None
+    parsed_output: Any | None = None
     input: dict[str, Any]
     engine: str
     meta_data: dict[str, Any]
 
-    def with_extracted_answer(self, extracted_answer: str | None) -> InferenceOutput:
+    def with_parsed_output(self, parsed_output: Any | None) -> InferenceOutput:
         raw = {
             **self.model_dump(),
-            "extracted_answer": extracted_answer,
+            "parsed_output": parsed_output,
         }
         return InferenceOutput(**raw)
 
