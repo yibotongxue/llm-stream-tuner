@@ -17,6 +17,7 @@ dependencies = [
     "redis>=6.4.0",
     "torch==2.6.0",
     "transformers>=4.55.2",
+    "pyarrow==20.0.0",
     "vllm>=0.8.5.post1",
 ]
 
