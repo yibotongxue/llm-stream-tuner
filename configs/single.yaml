@@ -1,0 +1,112 @@
+_common:
+  common_cache_cfgs: &common_cache_cfgs
+    cache_type: redis
+    json_dir: null
+    redis_cfgs:
+      host: localhost
+      port: 6379
+      db: 0
+      password: password
+    force_update: false
+
+  common_deepseek_cfgs: &common_deepseek_cfgs
+    model_cfgs:
+      inference_backend: api
+      model_sdk_type: openai
+      api_key_name: DEEPSEEK_API_KEY
+    inference_cfgs:
+      max_tokens: 8192
+      max_retry: 3
+      max_workers: 32
+      sleep_seconds: 30
+      timeout: 300
+    cache_cfgs: *common_cache_cfgs
+
+  deepseek_chat_cfgs: &deepseek_chat_cfgs
+    <<: *common_deepseek_cfgs
+    model_cfgs:
+      model_name_or_path: deepseek-chat
+
+  deepseek_reasoner_cfgs: &deepseek_reasoner_cfgs
+    <<: *common_deepseek_cfgs
+    model_cfgs:
+      model_name_or_path: deepseek-reasoner
+
+data_cfgs:
+  data_path: UCSC-VLAA/STAR-1
+  data_template: STAR-1
+  data_size: null
+  load_cfgs:
+    split: train
+
+attack_data_cfgs:
+  data_path: json
+  data_files: ./data/aim.json
+  data_template: Alpaca
+  data_size: 1
+  load_cfgs:
+    split: train
+
+model_cfgs:
+  model_name_or_path: Qwen/Qwen3-8B
+  inference_backend: vllm
+  vllm_init_args:
+    tensor_parallel_size: 4
+    dtype: bfloat16
+    max_model_len: 8192
+    gpu_memory_utilization: 0.9
+    max_num_seqs: 64
+    enable_prefix_caching: true
+
+inference_cfgs:
+  sampling_params:
+    max_tokens: 8192
+    temperature: 0.0
+    top_k: 1
+    top_p: 1.0
+    stop: ["<|endoftext|>", "<|im_end|>"]
+
+cache_cfgs: *common_cache_cfgs
+
+safety_judger_cfgs:
+  type: llm
+  model_cfgs:
+    inference_backend: vllm
+    model_name_or_path: meta-llama/Llama-Guard-3-8B
+    vllm_init_args:
+      tensor_parallel_size: 4
+      dtype: bfloat16
+      max_model_len: 8192
+      max_num_seqs: 64
+      gpu_memory_utilization: 0.9
+      enable_prefix_caching: true
+  inference_cfgs:
+    sampling_params:
+      temperature: 0.0
+      top_k: 1
+      top_p: 1.0
+      max_tokens: 10
+      skip_special_tokens: true
+      stop: ["<|eot_id|>"]
+  cache_cfgs: *common_cache_cfgs
+  prompt_builder_cfgs: SimpleSafetyJudge
+
+intent_extractor_cfgs:
+  type: llm
+  llm_cfgs: *deepseek_chat_cfgs
+  prompt_builder_cfgs: SimpleIntentExtract
+
+reminder_generator_cfgs:
+  type: llm
+  llm_cfgs: *deepseek_reasoner_cfgs
+  prompt_builder_cfgs: SimpleReminderGenerate
+
+attack_generator_cfgs:
+  type: llm
+  llm_cfgs: *deepseek_chat_cfgs
+  prompt_builder_cfgs: SimpleAttackGenerate
+
+system_prompt_remover_cfgs:
+  type: llm
+  llm_cfgs: *deepseek_chat_cfgs
+  prompt_builder_cfgs: SimpleSystemPromptRemove

@@ -130,6 +130,9 @@ class AlpacaInputData(CustomBaseModel):
     output: str
     meta_data: dict[str, Any] = {}
 
+    def get_prompt(self) -> str:
+        return f"{self.instruction}\n{self.input}"
+
 
 def to_dict(obj: BaseModel | dict[str, Any]) -> dict[str, Any]:
 

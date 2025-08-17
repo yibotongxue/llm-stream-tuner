@@ -38,7 +38,7 @@ def load_json(file_path: str) -> dict[str, Any]:
         return json.load(file)  # type: ignore [no-any-return]
 
 
-def save_json(data: dict[str, Any], file_path: str) -> None:
+def save_json(data: dict[str, Any] | list[dict[str, Any]], file_path: str) -> None:
     """
     Save a dictionary to a JSON file.
 
