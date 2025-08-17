@@ -1,5 +1,6 @@
 from typing import Any, override
 
+from ..inference import InferenceFactory
 from ..utils.json_utils import save_json
 from ..utils.type_utils import AlpacaInputData, InferenceInput, InferenceOutput
 from .base import BaseTask
@@ -17,7 +18,12 @@ class SingleTask(BaseTask):
         attack_prompt = attack_sample.get_prompt()
         self.logger.info(f"攻击提示：{attack_prompt}")
         attack_input = InferenceInput.from_prompts(attack_prompt)
-        attack_outputs = self.inference.generate([attack_input])
+        inference = InferenceFactory.get_inference_instance(
+            model_cfgs=self.model_cfgs,
+            inference_cfgs=self.inference_cfgs,
+            cache_cfgs=self.cache_cfgs,
+        )
+        attack_outputs = inference.generate([attack_input])
         self.logger.info(f"攻击提示的响应：{attack_outputs[0].response}")
         safety_judge_results = self.safety_judger.judge(attack_outputs)
         if safety_judge_results[0]:
@@ -159,7 +165,12 @@ class SingleTask(BaseTask):
             InferenceInput.from_prompts(prompt, system_prompt=reminder)
             for prompt in attack_prompts
         ]
-        attack_outputs = self.inference.generate(
+        inference = InferenceFactory.get_inference_instance(
+            model_cfgs=self.model_cfgs,
+            inference_cfgs=self.inference_cfgs,
+            cache_cfgs=self.cache_cfgs,
+        )
+        attack_outputs = inference.generate(
             inputs=attack_inputs,
             enable_tqdm=True,
             tqdm_args={"desc": "生成攻击提示的响应"},

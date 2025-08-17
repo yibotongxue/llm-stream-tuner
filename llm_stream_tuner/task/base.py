@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from ..data.data_loader import TrainDataLoader
-from ..inference import InferenceFactory
 from ..pipeline.attack_generator import get_attack_generator
 from ..pipeline.intent_extractor import get_intent_extractor
 from ..pipeline.reminder_generator import get_reminder_generator
@@ -34,14 +33,9 @@ class BaseTask(ABC):
 
         # 加载模型
         self.logger.info("开始加载模型")
-        model_cfgs: dict[str, Any] = self.task_cfgs["model_cfgs"]
-        inference_cfgs: dict[str, Any] = self.task_cfgs["inference_cfgs"]
-        cache_cfgs: dict[str, Any] | None = self.task_cfgs.get("cache_cfgs", None)
-        self.inference = InferenceFactory.get_inference_instance(
-            model_cfgs=model_cfgs,
-            inference_cfgs=inference_cfgs,
-            cache_cfgs=cache_cfgs,
-        )
+        self.model_cfgs: dict[str, Any] = self.task_cfgs["model_cfgs"]
+        self.inference_cfgs: dict[str, Any] = self.task_cfgs["inference_cfgs"]
+        self.cache_cfgs: dict[str, Any] | None = self.task_cfgs.get("cache_cfgs", None)
         self.logger.info("模型加载完成")
 
         # 加载安全判断器

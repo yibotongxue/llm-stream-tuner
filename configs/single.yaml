@@ -10,7 +10,7 @@ _common:
     force_update: false
 
   common_deepseek_cfgs: &common_deepseek_cfgs
-    model_cfgs:
+    model_cfgs: &common_deepseek_model_cfgs
       inference_backend: api
       model_sdk_type: openai
       api_key_name: DEEPSEEK_API_KEY
@@ -25,11 +25,13 @@ _common:
   deepseek_chat_cfgs: &deepseek_chat_cfgs
     <<: *common_deepseek_cfgs
     model_cfgs:
+      <<: *common_deepseek_model_cfgs
       model_name_or_path: deepseek-chat
 
   deepseek_reasoner_cfgs: &deepseek_reasoner_cfgs
     <<: *common_deepseek_cfgs
     model_cfgs:
+      <<: *common_deepseek_model_cfgs
       model_name_or_path: deepseek-reasoner
 
 data_cfgs:
@@ -54,8 +56,8 @@ model_cfgs:
     tensor_parallel_size: 4
     dtype: bfloat16
     max_model_len: 8192
-    gpu_memory_utilization: 0.9
-    max_num_seqs: 64
+    gpu_memory_utilization: 0.85
+    max_num_seqs: 32
     enable_prefix_caching: true
 
 inference_cfgs:
@@ -79,7 +81,7 @@ safety_judger_cfgs:
         dtype: bfloat16
         max_model_len: 8192
         max_num_seqs: 64
-        gpu_memory_utilization: 0.9
+        gpu_memory_utilization: 0.85
         enable_prefix_caching: true
     inference_cfgs:
       sampling_params:
@@ -90,7 +92,7 @@ safety_judger_cfgs:
         skip_special_tokens: true
         stop: ["<|eot_id|>"]
     cache_cfgs: *common_cache_cfgs
-  prompt_builder_cfgs: SimpleSafetyJudge
+  prompt_builder_cfgs: LlamaGuard
 
 intent_extractor_cfgs:
   type: llm
