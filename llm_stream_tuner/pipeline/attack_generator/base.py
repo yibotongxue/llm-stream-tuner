@@ -9,8 +9,8 @@ class BaseAttackGenerator(ABC):
     @abstractmethod
     def generate_attack(
         self,
-        prompt: str,
+        prompts: list[str],
         reminder: str,
         example_prompt: str,
         example_attack_prompt: str,
-    ) -> str | None: ...
+    ) -> list[str]: ...

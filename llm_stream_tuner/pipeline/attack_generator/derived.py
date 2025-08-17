@@ -29,12 +29,12 @@ class LlmAttackGenerator(BaseAttackGenerator):
     @override
     def generate_attack(
         self,
-        prompt: str,
+        prompts: list[str],
         reminder: str,
         example_prompt: str,
         example_attack_prompt: str,
-    ) -> str | None:
-        output = self.inference.generate(
+    ) -> list[str]:
+        outputs = self.inference.generate(
             [
                 InferenceInput.from_prompts(prompt).with_meta_data(
                     {
@@ -43,14 +43,21 @@ class LlmAttackGenerator(BaseAttackGenerator):
                         "example_attack_prompt": example_attack_prompt,
                     }
                 )
+                for prompt in prompts
             ],
             prompt_template=self.prompt_builder_cfgs,
+            enable_tqdm=True,
+            tqdm_args={"desc": "Generating Attacks"},
         )
-        attack = output[0].parsed_output
-        if attack is None:
-            return None
-        if not isinstance(attack, str):
-            raise TypeError(
-                f"IntentExtractor output is not str, but {type(attack).__name__}"
-            )
-        return attack
+        attacks = [output.parsed_output for output in outputs]
+        results: list[str] = []
+        for attack in attacks:
+            if attack is None:
+                continue
+            elif not isinstance(attack, str):
+                raise TypeError(
+                    f"IntentExtractor output is not str, but {type(attack).__name__}"
+                )
+            else:
+                results.append(attack)
+        return results
