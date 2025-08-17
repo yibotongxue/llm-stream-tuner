@@ -113,9 +113,15 @@ class SingleTask(BaseTask):
                 self.logger.info("生成提醒失败，结束攻击")
                 break
 
+        self.logger.info(f"攻击结束，共生成{len(result_dataset)}条数据")
+
         safe_responses = [data.output for data in safe_dataset]
+        self.logger.info(f"开始移除安全数据中的系统提示")
         removed_responses = self.system_prompt_remover.remove_system_prompt(
             safe_responses
+        )
+        self.logger.info(
+            f"移除安全数据中的系统提示完成，其中失败的有{removed_responses.count(None)}条"
         )
         result_dataset = [
             AlpacaInputData(
@@ -124,10 +130,10 @@ class SingleTask(BaseTask):
                 output=removed_response,
             )
             for data, removed_response in zip(safe_dataset, removed_responses)
+            if removed_response is not None
         ]
 
-        self.logger.info(f"攻击结束，共生成{len(result_dataset)}条数据")
-        self.logger.info(f"开始保存攻击数据集到{self.output_dir}/'attack_dataset.json'")
+        self.logger.info(f"开始保存攻击数据集到{self.output_dir}/attack_dataset.json")
         dataset_to_save = [data.model_dump() for data in result_dataset]
         save_json(dataset_to_save, f"{self.output_dir}/attack_dataset.json")
         self.logger.info(f"攻击数据集保存完成")

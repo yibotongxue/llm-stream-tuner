@@ -22,7 +22,7 @@ class LlmSystemPromptRemover(BaseSystemPromptRemover):
         )
 
     @override
-    def remove_system_prompt(self, responses: list[str]) -> list[str]:
+    def remove_system_prompt(self, responses: list[str]) -> list[str | None]:
         inference = InferenceFactory.get_inference_instance(
             model_cfgs=self.model_cfgs,
             inference_cfgs=self.inference_cfgs,
@@ -35,10 +35,11 @@ class LlmSystemPromptRemover(BaseSystemPromptRemover):
             tqdm_args={"desc": "Removing System Prompt"},
         )
         new_responses = [output.parsed_output for output in outputs]
-        results: list[str] = []
+        results: list[str | None] = []
         for new_response in new_responses:
             if new_response is None:
-                continue
+                self.logger.info("移除系统提示失败，返回None")
+                results.append(None)
             elif not isinstance(new_response, str):
                 raise TypeError(
                     f"IntentExtractor output is not str, but {type(new_response).__name__}"
