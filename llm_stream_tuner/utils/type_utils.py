@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from .logger import Logger, app_logger
+
 
 class CustomBaseModel(BaseModel):  # type: ignore [misc]
     def to_brief_dict(self) -> dict[str, Any]:
@@ -31,6 +33,45 @@ class InferenceInput(CustomBaseModel):
                 }
             ],
             system_prompt=system_prompt,
+            meta_data={},
+        )
+
+    @classmethod
+    def from_output(
+        cls,
+        output: InferenceOutput,
+        logger: Logger | None = None,
+        use_parsed_output: bool = False,
+    ) -> InferenceInput:
+        conversation = InferenceInput(**output.input).conversation.copy()
+        if conversation[0]["role"] == "system":
+            conversation.pop(0)
+        if logger is None:
+            logger = app_logger
+        if conversation[-1]["role"] == "assistant":
+            logger.warning(
+                f"The last turn of conversation is assistant.\nThe details is {conversation[-1]}. We will remove it"
+            )
+            conversation.pop()
+        if use_parsed_output:
+            if output.parsed_output is None:
+                logger.warning(
+                    f"The output of {output.parsed_output} is None. We will use the raw output."
+                )
+                response = output.response
+            if not isinstance(output.parsed_output, str):
+                logger.warning(
+                    f"The output of {output.parsed_output} is not str. We will use the raw output."
+                )
+                response = output.response
+            else:
+                response = output.parsed_output
+        else:
+            response = output.response
+        conversation.append({"role": "assistant", "content": response})
+        return InferenceInput(
+            conversation=conversation,
+            system_prompt="",
             meta_data={},
         )
 
