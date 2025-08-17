@@ -22,7 +22,7 @@ class InferenceInterface(ABC):
         self,
         inputs: list[InferenceInput],
         *,
-        prompt_template: str | None = None,
+        prompt_template: str | dict[str, Any] | None = None,
         enable_tqdm: bool = False,
         tqdm_args: dict[str, Any] | None = None,
     ) -> list[InferenceOutput]:
@@ -33,7 +33,7 @@ class InferenceInterface(ABC):
         ----
         inputs : list[InferenceInput]
             输入数据列表
-        prompt_template : str | None, 默认为None
+        prompt_template : str | dict[str, Any] | None, 默认为None
             提示模板名称，用于构建或修改提示
         enable_tqdm : bool, 默认为False
             是否显示进度条
