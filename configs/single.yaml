@@ -110,3 +110,9 @@ system_prompt_remover_cfgs:
   type: llm
   llm_cfgs: *deepseek_chat_cfgs
   prompt_builder_cfgs: SimpleSystemPromptRemove
+
+
+output_dir: ./output
+asr_threshold: 0.05
+attack_epoch_num: 5
+retry_num: 3

@@ -262,3 +262,7 @@ def main() -> None:
 
     task = SingleTask(task_cfgs=cfgs)
     task.run()
+
+
+if __name__ == "__main__":
+    main()
