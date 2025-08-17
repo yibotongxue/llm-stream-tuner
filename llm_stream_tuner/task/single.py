@@ -115,7 +115,7 @@ class SingleTask(BaseTask):
 
         self.logger.info(f"攻击结束，共生成{len(result_dataset)}条数据")
 
-        safe_responses = [data.output for data in safe_dataset]
+        safe_responses = [data.output for data in result_dataset]
         self.logger.info(f"开始移除安全数据中的系统提示")
         removed_responses = self.system_prompt_remover.remove_system_prompt(
             safe_responses
@@ -129,7 +129,7 @@ class SingleTask(BaseTask):
                 input=data.input,
                 output=removed_response,
             )
-            for data, removed_response in zip(safe_dataset, removed_responses)
+            for data, removed_response in zip(result_dataset, removed_responses)
             if removed_response is not None
         ]
 
