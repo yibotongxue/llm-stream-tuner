@@ -82,6 +82,7 @@ class SingleTask(BaseTask):
         attack_prompts = [prompt.get_prompt() for prompt in unsafe_dataset]
 
         for i in range(self.attack_epoch_num):
+            print(f"第{i+1}轮攻击提示数量: {len(attack_prompts)}")
             attack_outputs = self.generate_responses(attack_prompts, reminder)
             safety_judgment, asr = self.judge_safety(attack_outputs, attack_prompts)
             safe_dataset, unsafe_dataset = self.split_dataset(
@@ -98,6 +99,7 @@ class SingleTask(BaseTask):
                 )
                 break
             attack_prompts = [prompt.get_prompt() for prompt in unsafe_dataset]
+            print(f"第{i+1}轮攻击提示数量: {len(attack_prompts)}")
             attack_prompt = attack_prompts[0]
             self.logger.info(f"第{i+1}轮攻击提示：{attack_prompt}")
             intent = self.extract_intent(attack_prompt)

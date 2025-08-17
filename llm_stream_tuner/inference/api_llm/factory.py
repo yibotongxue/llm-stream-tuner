@@ -29,7 +29,7 @@ def get_api_llm_inference(
     ValueError
         当指定的模型SDK类型不受支持时抛出
     """
-    model_sdk_type = model_cfgs.pop("model_sdk_type")
+    model_sdk_type = model_cfgs.get("model_sdk_type")
     model_cfgs = load_api_key(model_cfgs)
     if model_sdk_type == "openai":
         from .openai_api import OpenAIApiLLMInference
