@@ -41,10 +41,10 @@ data_cfgs:
 
 attack_data_cfgs:
   data_path: json
-  data_files: ./data/aim.json
   data_template: Alpaca
   data_size: 1
   load_cfgs:
+    data_files: ./data/aim.json
     split: train
 
 model_cfgs:
@@ -70,25 +70,26 @@ cache_cfgs: *common_cache_cfgs
 
 safety_judger_cfgs:
   type: llm
-  model_cfgs:
-    inference_backend: vllm
-    model_name_or_path: meta-llama/Llama-Guard-3-8B
-    vllm_init_args:
-      tensor_parallel_size: 4
-      dtype: bfloat16
-      max_model_len: 8192
-      max_num_seqs: 64
-      gpu_memory_utilization: 0.9
-      enable_prefix_caching: true
-  inference_cfgs:
-    sampling_params:
-      temperature: 0.0
-      top_k: 1
-      top_p: 1.0
-      max_tokens: 10
-      skip_special_tokens: true
-      stop: ["<|eot_id|>"]
-  cache_cfgs: *common_cache_cfgs
+  llm_cfgs:
+    model_cfgs:
+      inference_backend: vllm
+      model_name_or_path: meta-llama/Llama-Guard-3-8B
+      vllm_init_args:
+        tensor_parallel_size: 4
+        dtype: bfloat16
+        max_model_len: 8192
+        max_num_seqs: 64
+        gpu_memory_utilization: 0.9
+        enable_prefix_caching: true
+    inference_cfgs:
+      sampling_params:
+        temperature: 0.0
+        top_k: 1
+        top_p: 1.0
+        max_tokens: 10
+        skip_special_tokens: true
+        stop: ["<|eot_id|>"]
+    cache_cfgs: *common_cache_cfgs
   prompt_builder_cfgs: SimpleSafetyJudge
 
 intent_extractor_cfgs:

@@ -13,17 +13,12 @@ class LlmAttackGenerator(BaseAttackGenerator):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config=config)
         llm_cfgs = config["llm_cfgs"]
-        model_cfgs: dict[str, Any] = llm_cfgs["model_cfgs"]
-        inference_cfgs: dict[str, Any] = llm_cfgs["inference_cfgs"]
-        cache_cfgs: dict[str, Any] | None = llm_cfgs.get("cache_cfgs", None)
+        self.model_cfgs: dict[str, Any] = llm_cfgs["model_cfgs"]
+        self.inference_cfgs: dict[str, Any] = llm_cfgs["inference_cfgs"]
+        self.cache_cfgs: dict[str, Any] | None = llm_cfgs.get("cache_cfgs", None)
         self.prompt_builder_cfgs = config["prompt_builder_cfgs"]
         PromptBuilderRegistry.verify_type(
             self.prompt_builder_cfgs, BaseAttackGeneratePromptBuilder  # type: ignore [type-abstract]
-        )
-        self.inference = InferenceFactory.get_inference_instance(
-            model_cfgs=model_cfgs,
-            inference_cfgs=inference_cfgs,
-            cache_cfgs=cache_cfgs,
         )
 
     @override
@@ -34,7 +29,12 @@ class LlmAttackGenerator(BaseAttackGenerator):
         example_prompt: str,
         example_attack_prompt: str,
     ) -> list[str]:
-        outputs = self.inference.generate(
+        inference = InferenceFactory.get_inference_instance(
+            model_cfgs=self.model_cfgs,
+            inference_cfgs=self.inference_cfgs,
+            cache_cfgs=self.cache_cfgs,
+        )
+        outputs = inference.generate(
             [
                 InferenceInput.from_prompts(prompt).with_meta_data(
                     {

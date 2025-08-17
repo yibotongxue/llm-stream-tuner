@@ -13,22 +13,22 @@ class LlmIntentExtractor(BaseIntentExtractor):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config=config)
         llm_cfgs = config["llm_cfgs"]
-        model_cfgs: dict[str, Any] = llm_cfgs["model_cfgs"]
-        inference_cfgs: dict[str, Any] = llm_cfgs["inference_cfgs"]
-        cache_cfgs: dict[str, Any] | None = llm_cfgs.get("cache_cfgs", None)
+        self.model_cfgs: dict[str, Any] = llm_cfgs["model_cfgs"]
+        self.inference_cfgs: dict[str, Any] = llm_cfgs["inference_cfgs"]
+        self.cache_cfgs: dict[str, Any] | None = llm_cfgs.get("cache_cfgs", None)
         self.prompt_builder_cfgs = config["prompt_builder_cfgs"]
         PromptBuilderRegistry.verify_type(
             self.prompt_builder_cfgs, BaseIntentExtractPromptBuilder  # type: ignore [type-abstract]
         )
-        self.inference = InferenceFactory.get_inference_instance(
-            model_cfgs=model_cfgs,
-            inference_cfgs=inference_cfgs,
-            cache_cfgs=cache_cfgs,
-        )
 
     @override
     def extract_intent(self, prompt: str) -> str | None:
-        output = self.inference.generate(
+        inference = InferenceFactory.get_inference_instance(
+            model_cfgs=self.model_cfgs,
+            inference_cfgs=self.inference_cfgs,
+            cache_cfgs=self.cache_cfgs,
+        )
+        output = inference.generate(
             [InferenceInput.from_prompts(prompt)],
             prompt_template=self.prompt_builder_cfgs,
         )
