@@ -195,14 +195,15 @@ class SingleTask(BaseTask):
         attack_outputs = inference.generate(
             inputs=attack_inputs,
             enable_tqdm=True,
+            prompt_template="ThinkTag",
             tqdm_args={"desc": "生成攻击提示的响应"},
         )
         self.logger.info(
-            f"第一条攻击提示：{attack_prompts[0]}，模型得到的响应：{attack_outputs[0].response}"
+            f"第一条攻击提示：{attack_prompts[0]}，模型得到的响应：{attack_outputs[0].parsed_output}"
         )
         if len(attack_inputs) > 1:
             self.logger.info(
-                f"第二条攻击提示：{attack_prompts[1]}，模型得到的响应：{attack_outputs[1].response}"
+                f"第二条攻击提示：{attack_prompts[1]}，模型得到的响应：{attack_outputs[1].parsed_output}"
             )
         return attack_outputs
 
