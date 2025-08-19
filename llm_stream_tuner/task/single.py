@@ -75,9 +75,8 @@ class SingleTask(BaseTask):
             f"安全数据数量: {len(safe_dataset)}, 不安全数据数量: {len(unsafe_dataset)}"
         )
 
-        result_dataset = safe_dataset.copy()
+        result_dataset: list[AlpacaInputData] = []
         original_attack_prompts = attack_prompts.copy()
-        attack_prompts = [prompt.get_prompt() for prompt in unsafe_dataset]
 
         for i in range(self.attack_epoch_num):
             print(f"第{i+1}轮攻击提示数量: {len(attack_prompts)}")
