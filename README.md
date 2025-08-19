@@ -1,86 +1,110 @@
-# Python项目模板
+中文 | [English](README_en.md)
 
-这是一个Python项目的模板，可以帮助建立一个初始的规范开发环境。
+# LLM Stream Tuner
 
-## 使用
+动态增量开放学习的大语言模型框架
 
-点击左上方 `use this template` 按钮，使用本模板建立一个自己的仓库，拉取到本地，即可继续开发。本项目使用 `uv` 管理依赖，项目本身也是使用命令
+*注意：本中文 README 和英文 README 均由 Qwen Code 自动生成。*
+
+## 描述
+
+LLM Stream Tuner 是一个为大语言模型设计的动态增量开放学习框架。它提供了持续训练和微调LLM的工具，使模型能够适应新信息而不遗忘已学知识。
+
+该框架支持各种任务，包括安全性评估、对抗性攻击生成和增量学习策略。它特别专注于生成对抗性样本来提高模型的鲁棒性和安全性。
+
+## 环境设置
+
+本项目使用 `uv` 进行依赖管理。设置环境的步骤如下：
+
+1. 如果尚未安装 `uv`，请先安装：
+   ```bash
+   pip3 install uv
+   ```
+
+2. 同步依赖：
+   ```bash
+   uv sync
+   ```
+
+3. 激活虚拟环境：
+   ```bash
+   source .venv/bin/activate
+   ```
+
+4. 安装 pre-commit 钩子：
+   ```bash
+   pre-commit install
+   ```
+
+关于 `uv` 的更多信息，请参考[文档](https://docs.astral.sh/uv/)或[中文文档](https://uv.doczh.com/)。
+
+## 使用方法
+
+本项目的主要使用方式是通过单任务模块：
 
 ```bash
-uv init python-project-template --python=3.12
+uv run -m llm_stream_tuner.task.single --config-file-path ./configs/single.yaml
 ```
 
-命令创建的。
-
-使用命令
+您也可以传递额外参数来覆盖配置值：
 
 ```bash
-uv sync
+uv run -m llm_stream_tuner.task.single --config-file-path ./configs/single.yaml --model_cfgs.model_name_or_path Qwen/Qwen3-8B
 ```
 
-安装开发依赖，如果没有安装 `uv` 的，可以使用命令
+### 配置
+
+框架使用 YAML 配置文件来定义实验设置。主配置文件是 `configs/single.yaml`，包括：
+
+- 数据加载配置
+- 模型配置
+- 推理设置
+- 安全性判断配置
+- 意图提取设置
+- 提醒生成设置
+- 攻击生成设置
+- 系统提示移除设置
+
+## 设计
+
+框架采用模块化设计，包含以下关键组件：
+
+1. **任务模块**：定义不同类型的任务（目前仅实现了 SingleTask）
+2. **数据模块**：处理数据加载和预处理
+3. **推理模块**：管理模型推理，支持多种后端（vLLM、基于API）
+4. **管道模块**：包含不同阶段的专用组件：
+   - 安全判断器：评估响应安全性
+   - 意图提取器：从提示中提取意图
+   - 提醒生成器：创建安全提醒
+   - 攻击生成器：生成对抗性样本
+   - 系统提示移除器：移除系统提示
+5. **缓存管理器**：处理推理结果的缓存
+6. **工具模块**：提供日志、配置和文件处理的实用函数
+
+SingleTask 工作流程：
+1. 加载初始数据和攻击数据
+2. 对模型执行初始攻击
+3. 评估攻击成功率
+4. 从成功攻击中提取意图
+5. 生成安全提醒
+6. 生成新的对抗性样本
+7. 在指定的轮数内迭代优化攻击
+8. 保存生成的安全数据集
+
+## 测试
+
+项目在 `tests` 目录中包含了单元测试。运行测试：
 
 ```bash
-pip3 install uv
+uv run pytest
 ```
 
-安装。 `uv` 工具的相关内容可以参考[文档](https://docs.astral.sh/uv/)或[中文文档](https://uv.doczh.com/)。
+测试覆盖：
+- 每个模块的核心功能
+- 配置加载和解析
+- 数据处理管道
+- 实用函数
 
-激活环境
+## 许可证
 
-```bash
-source .venv/bin/activate
-```
-
-安装 `pre-commit` 工具
-
-```bash
-pre-commit install
-```
-
-`pre-commit` 工具的相关内容可以参考[文档](https://pre-commit.com/)。使用这个工具，会在每次git commit之前进行一些检查。我们的检查配置文件在[.pre-commit-config.yaml](./.pre-commit-config.yaml)，相关地说明参考[配置文件说明](#pre-commit-配置文件说明)。
-
-## 适配
-
-一般的，可以修改 `src` 为自己的目录名，并同步修改[pyproject.toml](./pyproject.toml)中的相关内容。可以将[pyproject.toml](./pyproject.toml)中的如下内容
-
-```toml
-[project]
-name = "python-project-template"
-version = "0.1.0"
-description = "Python项目模板"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
-```
-
-中的项目名为自己的项目名，对应地修改项目描述，按照需要调整版本号等。
-
-## `pre-commit` 配置文件说明
-
-这里直接复制[DeepSeek](https://deepseek.com/)的说明：
-
-1. **基础代码检查与修复**（来自 `pre-commit-hooks`）
-   - 检查符号链接有效性
-   - 删除行尾空格、确保文件末尾换行
-   - 验证 YAML/TOML 文件语法
-   - 阻止提交大文件（默认 >500KB）
-   - 检测调试语句（如 `import pdb`）和私钥泄露
-   - 检查可执行文件的 shebang 声明
-
-2. **Python 代码格式化**
-   - `isort`：自动排序 import 语句
-   - `black-jupyter`：格式化 Python 和 Jupyter 笔记本代码（遵循 PEP8）
-
-3. **Python 代码优化**
-   - `autoflake`：移除未使用的 imports 和变量
-   - `pyupgrade`：自动升级代码到 Python 3.12+ 语法
-
-4. **安全检查**
-   - `bandit`：扫描 Python 代码的安全漏洞（使用 `.bandit.yml` 配置）
-
-5. **静态类型检查**
-   - `mypy`：严格类型检查（Python 3.12 环境，忽略测试目录）
-
-6. **拼写检查**
-   - `codespell`：修复常见英文拼写错误
+本项目采用 MIT 许可证 - 详情请见 [LICENSE](LICENSE) 文件。
