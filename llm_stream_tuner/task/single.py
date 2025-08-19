@@ -107,7 +107,10 @@ class SingleTask(BaseTask):
                 self.logger.info("解析攻击提示的意图失败，结束攻击")
                 break
             reminder = self.generate_reminder(
-                attack_prompt, attack_outputs[0].response, intent
+                attack_prompt,
+                attack_outputs[0].response,
+                intent,
+                reminder,
             )
             if reminder is None:
                 self.logger.info("生成提醒失败，结束攻击")
@@ -156,7 +159,11 @@ class SingleTask(BaseTask):
         return intent
 
     def generate_reminder(
-        self, attack_prompt: str, attack_output: str, intent: str
+        self,
+        attack_prompt: str,
+        attack_output: str,
+        intent: str,
+        prev_reminder: str | None = None,
     ) -> str | None:
         self.logger.info(f"开始生成提醒")
         reminder = None
@@ -165,6 +172,7 @@ class SingleTask(BaseTask):
                 prompt=attack_prompt,
                 response=attack_output,
                 intent=intent,
+                prev_reminder=prev_reminder,
             )
             if reminder is None:
                 self.logger.info(f"第{i+1}次生成提醒失败，重试")

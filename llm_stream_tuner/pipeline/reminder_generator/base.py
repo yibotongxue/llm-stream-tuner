@@ -8,5 +8,9 @@ class BaseReminderGenerator(ABC):
 
     @abstractmethod
     def generate_reminder(
-        self, prompt: str, response: str, intent: str | None
+        self,
+        prompt: str,
+        response: str,
+        intent: str | None,
+        prev_reminder: str | None = None,
     ) -> str | None: ...

@@ -23,7 +23,11 @@ class LlmReminderGenerator(BaseReminderGenerator):
 
     @override
     def generate_reminder(
-        self, prompt: str, response: str, intent: str | None
+        self,
+        prompt: str,
+        response: str,
+        intent: str | None,
+        prev_reminder: str | None = None,
     ) -> str | None:
         inference = InferenceFactory.get_inference_instance(
             model_cfgs=self.model_cfgs,
@@ -36,6 +40,7 @@ class LlmReminderGenerator(BaseReminderGenerator):
                     {
                         "response": response,
                         "intent": intent,
+                        "prev_reminder": prev_reminder,
                     }
                 )
             ],
