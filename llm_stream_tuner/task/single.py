@@ -213,11 +213,11 @@ class SingleTask(BaseTask):
         self.logger.info(f"开始判断攻击提示的响应是否安全")
         safety_judge_results = self.safety_judger.judge(attack_outputs)
         self.logger.info(
-            f"第一条攻击提示:{attack_prompts[0]}, 模型得到的响应：{attack_outputs[0].response}，判定为{'安全' if safety_judge_results[0] else '不安全'}"
+            f"第一条攻击提示:{attack_prompts[0]}, 模型得到的响应：{attack_outputs[0].parsed_output or attack_outputs[0].response}，判定为{'安全' if safety_judge_results[0] else '不安全'}"
         )
         if len(safety_judge_results) > 1:
             self.logger.info(
-                f"第二条攻击提示:{attack_prompts[1]}, 模型得到的响应：{attack_outputs[1].response}，判定为{'安全' if safety_judge_results[1] else '不安全'}"
+                f"第二条攻击提示:{attack_prompts[1]}, 模型得到的响应：{attack_outputs[1].parsed_output or attack_outputs[1].response}，判定为{'安全' if safety_judge_results[1] else '不安全'}"
             )
         asr = 1.0 - sum(safety_judge_results) / len(safety_judge_results)
         self.logger.info(
@@ -235,7 +235,7 @@ class SingleTask(BaseTask):
             AlpacaInputData(
                 instruction=attack_prompts[i],
                 input="",
-                output=attack_outputs[i].response,
+                output=attack_outputs[i].parsed_output,
             )
             for i in range(len(attack_prompts))
             if safety_judgments[i]
@@ -244,7 +244,7 @@ class SingleTask(BaseTask):
             AlpacaInputData(
                 instruction=attack_prompts[i],
                 input="",
-                output=attack_outputs[i].response,
+                output=attack_outputs[i].parsed_output,
             )
             for i in range(len(attack_prompts))
             if not safety_judgments[i]
