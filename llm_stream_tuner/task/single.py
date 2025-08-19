@@ -18,12 +18,10 @@ class SingleTask(BaseTask):
         attack_prompt = attack_sample.get_prompt()
         self.logger.info(f"攻击提示：{attack_prompt}")
         attack_input = InferenceInput.from_prompts(attack_prompt)
-        inference = InferenceFactory.get_inference_instance(
-            model_cfgs=self.model_cfgs,
-            inference_cfgs=self.inference_cfgs,
-            cache_cfgs=self.cache_cfgs,
+        target_inference = InferenceFactory.get_inference_instance(
+            **self.target_model_cfgs
         )
-        attack_outputs = inference.generate([attack_input])
+        attack_outputs = target_inference.generate([attack_input])
         self.logger.info(f"攻击提示的响应：{attack_outputs[0].response}")
         safety_judge_results = self.safety_judger.judge(attack_outputs)
         if safety_judge_results[0]:
@@ -61,7 +59,7 @@ class SingleTask(BaseTask):
         if len(attack_prompts) > 1:
             self.logger.info(f"第二条攻击提示：{attack_prompts[1]}")
 
-        attack_outputs = self.generate_responses(attack_prompts)
+        attack_outputs = self.generate_responses(attack_prompts, self.target_model_cfgs)
 
         safety_judgment, asr = self.judge_safety(attack_outputs, attack_prompts)
         if asr < self.asr_threshold:
@@ -83,7 +81,9 @@ class SingleTask(BaseTask):
 
         for i in range(self.attack_epoch_num):
             print(f"第{i+1}轮攻击提示数量: {len(attack_prompts)}")
-            attack_outputs = self.generate_responses(attack_prompts, reminder)
+            attack_outputs = self.generate_responses(
+                attack_prompts, self.generate_model_cfgs, reminder
+            )
             safety_judgment, asr = self.judge_safety(attack_outputs, attack_prompts)
             safe_dataset, unsafe_dataset = self.split_dataset(
                 attack_outputs, attack_prompts, safety_judgment
@@ -185,18 +185,14 @@ class SingleTask(BaseTask):
         return reminder
 
     def generate_responses(
-        self, attack_prompts: list[str], reminder: str = ""
+        self, attack_prompts: list[str], model_cfgs: dict[str, Any], reminder: str = ""
     ) -> list[InferenceOutput]:
         self.logger.info(f"开始生成攻击提示的响应")
         attack_inputs = [
             InferenceInput.from_prompts(prompt, system_prompt=reminder)
             for prompt in attack_prompts
         ]
-        inference = InferenceFactory.get_inference_instance(
-            model_cfgs=self.model_cfgs,
-            inference_cfgs=self.inference_cfgs,
-            cache_cfgs=self.cache_cfgs,
-        )
+        inference = InferenceFactory.get_inference_instance(**model_cfgs)
         attack_outputs = inference.generate(
             inputs=attack_inputs,
             enable_tqdm=True,

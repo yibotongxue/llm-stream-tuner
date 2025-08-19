@@ -33,9 +33,8 @@ class BaseTask(ABC):
 
         # 加载模型
         self.logger.info("开始加载模型")
-        self.model_cfgs: dict[str, Any] = self.task_cfgs["model_cfgs"]
-        self.inference_cfgs: dict[str, Any] = self.task_cfgs["inference_cfgs"]
-        self.cache_cfgs: dict[str, Any] | None = self.task_cfgs.get("cache_cfgs", None)
+        self.target_model_cfgs: dict[str, Any] = self.task_cfgs["target_model_cfgs"]
+        self.generate_model_cfgs: dict[str, Any] = self.target_model_cfgs["generate"]
         self.logger.info("模型加载完成")
 
         # 加载安全判断器
