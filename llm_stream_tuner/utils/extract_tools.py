@@ -30,7 +30,7 @@ def extract_last_tag_content(s: str, tag_name: str) -> str | None:
     # 构建正则表达式（考虑标签属性、换行符等）
     pattern = rf"<{tag_name}[^>]*>(.*?)</{tag_name}>"
     matches = re.findall(pattern, s, re.DOTALL)
-    if matches is None:
+    if matches is None or len(matches) < 1:
         return None
     content = matches[-1]
     if not isinstance(content, str):

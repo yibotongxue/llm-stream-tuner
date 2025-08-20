@@ -10,7 +10,7 @@ class ThinkTagPromptBuilder(BasePromptBuilder):
 
     def parse_output(self, raw_output: InferenceOutput) -> InferenceOutput:
         response = raw_output.response
-        raw_output_meta_data = raw_output.meta_data
+        raw_output_meta_data = raw_output.meta_data["raw_output"]
         if (
             "choices" in raw_output_meta_data
             and isinstance(raw_output_meta_data["choices"], list)
@@ -27,6 +27,6 @@ class ThinkTagPromptBuilder(BasePromptBuilder):
                     message["reasoning_content"], str
                 ):
                     reasoning = message["reasoning_content"]
-                    parsed_output = f"<think>\n{reasoning}\n</think>{response}"
-                    return raw_output.with_parsed_output(parsed_output)
-        return raw_output.with_parsed_output(response)
+                    response = f"<think>\n{reasoning}\n</think>{response}"
+                    return raw_output.with_updated_response(response)
+        return raw_output

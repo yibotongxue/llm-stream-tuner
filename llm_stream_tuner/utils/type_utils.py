@@ -123,6 +123,13 @@ class InferenceOutput(CustomBaseModel):
         }
         return InferenceOutput(**raw)
 
+    def with_updated_response(self, response: str) -> InferenceOutput:
+        raw = {
+            **self.model_dump(),
+            "response": response,
+        }
+        return InferenceOutput(**raw)
+
 
 class AlpacaInputData(CustomBaseModel):
     instruction: str
